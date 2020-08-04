@@ -3,6 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MongoDBDemo
 {
@@ -28,19 +29,22 @@ namespace MongoDBDemo
             //db.InsertRecord("Users", person);
 
             var recs = db.LoadRecords<PersonModel>("Users");
+            var id = recs.Where(r => r.PrimaryAddress != null).First().Id;
 
-            foreach (var rec in recs)
-            {
-                Console.WriteLine($"{rec.Id}: {rec.FirstName} {rec.LastName}");
+            //foreach (var rec in recs)
+            //{
+            //    Console.WriteLine($"{rec.Id}: {rec.FirstName} {rec.LastName}");
 
-                // Check to see if we have an addres
-                if(rec.PrimaryAddress != null)
-                {
-                    Console.WriteLine(rec.PrimaryAddress.City);
-                }
+            //    // Check to see if we have an addres
+            //    if(rec.PrimaryAddress != null)
+            //    {
+            //        Console.WriteLine(rec.PrimaryAddress.City);
+            //    }
 
-                Console.WriteLine();// Separate records
-            }
+            //    Console.WriteLine();// Separate records
+            //}
+
+            var record = db.LoadRecordById<PersonModel>("Users", id);
 
             Console.ReadLine();
         }
