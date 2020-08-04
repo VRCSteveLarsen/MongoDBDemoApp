@@ -4,14 +4,22 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 
 namespace MongoDBDemo
 {
+    // We need a list of the tables/collections we are going to use
+    // MongoDB will just make a new table if we misspell the table name
+    public static class MongoCollections
+    {
+        public const string AddressBookDB = "AddressBook";
+        public const string Users = "Users";
+    }
     class Program
     {
         static void Main(string[] args)
         {
-            MongoCRUD db = new MongoCRUD("AddressBook");
+            MongoCRUD db = new MongoCRUD(MongoCollections.AddressBookDB);
 
             //PersonModel person = new PersonModel
             //{
@@ -26,9 +34,11 @@ namespace MongoDBDemo
             //    }
             //};
             //// Insert a new record
-            //db.InsertRecord("Users", person);
+            //db.InsertRecord(MongoCollections.Users, person);
 
-            var recs = db.LoadRecords<PersonModel>("Users");
+            // Use a static const string for the tables we want
+            var recs = db.LoadRecords<PersonModel>(MongoCollections.Users);
+            // Find a valid record with a Primary address and get the Guid
             var id = recs.Where(r => r.PrimaryAddress != null).First().Id;
 
             //foreach (var rec in recs)
@@ -44,7 +54,8 @@ namespace MongoDBDemo
             //    Console.WriteLine();// Separate records
             //}
 
-            var record = db.LoadRecordById<PersonModel>("Users", id);
+            // Get a specific record via Guid
+            var record = db.LoadRecordById<PersonModel>(MongoCollections.Users, id);
 
             Console.ReadLine();
         }
@@ -79,22 +90,27 @@ namespace MongoDBDemo
 
         public void InsertRecord<T>(string table, T record)
         {
+            // Create the collection
             var collection = db.GetCollection<T>(table);
+            // Insert the record
             collection.InsertOne(record);
         }
 
         public List<T> LoadRecords<T>(string table)
         {
+            // Create the collection
             var collection = db.GetCollection<T>(table);
-
+            // Convert the find results to a list we can use
             return collection.Find(new BsonDocument()).ToList();
         }
 
         public T LoadRecordById<T>(string table, Guid id)
         {
+            // Create the collection
             var collection = db.GetCollection<T>(table);
+            // Create the filter
             var filter = Builders<T>.Filter.Eq("Id", id);
-
+            // Return the filtered results we found
             return collection.Find(filter).First();
         }
     }
