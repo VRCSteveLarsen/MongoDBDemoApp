@@ -23,7 +23,7 @@ namespace MongoDBDemo
 
             //PersonModel person = new PersonModel
             //{
-            //    FirstName = "Joe",
+            //    FirstName = "Jane",
             //    LastName = "Smith",
             //    PrimaryAddress = new AddressModel
             //    {
@@ -68,6 +68,10 @@ namespace MongoDBDemo
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public AddressModel PrimaryAddress { get; set; }
+        // Store in the database as dob
+        // Remember to use UTC to avoid weird date issues
+        [BsonElement("dob")]
+        public DateTime DateOfBirth { get; set; }
     }
 
     public class AddressModel
@@ -112,6 +116,31 @@ namespace MongoDBDemo
             var filter = Builders<T>.Filter.Eq("Id", id);
             // Return the filtered results we found
             return collection.Find(filter).First();
+        }
+
+        public void UpsertRecord<T>(string table, Guid id, T record)
+        {
+            // Create the collection
+            var collection = db.GetCollection<T>(table);
+            // Create the filter
+            var filter = Builders<T>.Filter.Eq("Id", id);
+            // Replace the record via an upsert
+            // Upsert is an update if the filter finds something or
+            // an insert if there is nothing matching
+            collection.ReplaceOne(
+                filter,
+                record,
+                new ReplaceOptions { IsUpsert = true });
+        }
+
+        public void DeleteRecord<T>(string table, Guid id)
+        {
+            // Create the collection
+            var collection = db.GetCollection<T>(table);
+            // Create the filter
+            var filter = Builders<T>.Filter.Eq("Id", id);
+            // Delete the record
+            collection.DeleteOne(filter);
         }
     }
 }
