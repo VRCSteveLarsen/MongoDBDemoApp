@@ -1,9 +1,4 @@
-﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Reflection.Metadata;
 
 namespace MongoDBDemo
@@ -37,110 +32,36 @@ namespace MongoDBDemo
             //db.InsertRecord(MongoCollections.Users, person);
 
             // Use a static const string for the tables we want
-            var recs = db.LoadRecords<PersonModel>(MongoCollections.Users);
+            var recs = db.LoadRecords<NameModel>(MongoCollections.Users);
             // Find a valid record with a Primary address and get the Guid
-            var id = recs.Where(r => r.PrimaryAddress != null).First().Id;
+            //var id = recs.Where(r => r.PrimaryAddress != null).First().Id;
+
+            foreach (var rec in recs)
+            {
+                Console.WriteLine($"{rec.Id}: {rec.FirstName} {rec.LastName}");
+                Console.WriteLine();// Separate records
+            }
 
             //foreach (var rec in recs)
             //{
             //    Console.WriteLine($"{rec.Id}: {rec.FirstName} {rec.LastName}");
-
             //    // Check to see if we have an addres
             //    if(rec.PrimaryAddress != null)
             //    {
             //        Console.WriteLine(rec.PrimaryAddress.City);
             //    }
-
             //    Console.WriteLine();// Separate records
             //}
 
-            // Get a specific record via Guid
-            var record = db.LoadRecordById<PersonModel>(MongoCollections.Users, id);
+            //// Get a specific record via Guid
+            //var oneRec = db.LoadRecordById<PersonModel>(MongoCollections.Users, id);
+            //// Using UTC to avoid some timezone weirdness
+            //oneRec.DateOfBirth = new DateTime(1982, 10, 31, 0, 0, 0, DateTimeKind.Utc);
+            //// Upsert record
+            //db.UpsertRecord(MongoCollections.Users, oneRec.Id, oneRec);
+
 
             Console.ReadLine();
-        }
-    }
-
-    public class PersonModel
-    {
-        [BsonId]
-        public Guid Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public AddressModel PrimaryAddress { get; set; }
-        // Store in the database as dob
-        // Remember to use UTC to avoid weird date issues
-        [BsonElement("dob")]
-        public DateTime DateOfBirth { get; set; }
-    }
-
-    public class AddressModel
-    {
-        public string StreetAddress { get; set; }
-        public string City { get; set; }
-        public string State { get; set; }
-        public string ZipCode { get; set; }
-    }
-
-    public class MongoCRUD
-    {
-        private IMongoDatabase db;
-
-        public MongoCRUD(string database)
-        {
-            var client = new MongoClient();
-            db = client.GetDatabase(database);
-        }
-
-        public void InsertRecord<T>(string table, T record)
-        {
-            // Create the collection
-            var collection = db.GetCollection<T>(table);
-            // Insert the record
-            collection.InsertOne(record);
-        }
-
-        public List<T> LoadRecords<T>(string table)
-        {
-            // Create the collection
-            var collection = db.GetCollection<T>(table);
-            // Convert the find results to a list we can use
-            return collection.Find(new BsonDocument()).ToList();
-        }
-
-        public T LoadRecordById<T>(string table, Guid id)
-        {
-            // Create the collection
-            var collection = db.GetCollection<T>(table);
-            // Create the filter
-            var filter = Builders<T>.Filter.Eq("Id", id);
-            // Return the filtered results we found
-            return collection.Find(filter).First();
-        }
-
-        public void UpsertRecord<T>(string table, Guid id, T record)
-        {
-            // Create the collection
-            var collection = db.GetCollection<T>(table);
-            // Create the filter
-            var filter = Builders<T>.Filter.Eq("Id", id);
-            // Replace the record via an upsert
-            // Upsert is an update if the filter finds something or
-            // an insert if there is nothing matching
-            collection.ReplaceOne(
-                filter,
-                record,
-                new ReplaceOptions { IsUpsert = true });
-        }
-
-        public void DeleteRecord<T>(string table, Guid id)
-        {
-            // Create the collection
-            var collection = db.GetCollection<T>(table);
-            // Create the filter
-            var filter = Builders<T>.Filter.Eq("Id", id);
-            // Delete the record
-            collection.DeleteOne(filter);
         }
     }
 }
