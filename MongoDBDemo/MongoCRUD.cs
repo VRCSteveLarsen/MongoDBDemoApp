@@ -6,6 +6,14 @@ using System.Linq;
 
 namespace MongoDBDemo
 {
+    // We need a list of the tables/collections we are going to use
+    // MongoDB will just make a new table if we misspell the table name
+    public static class MongoCollections
+    {
+        public const string AddressBookDB = "AddressBook";
+        public const string Users = "Users";
+    }
+
     public class MongoCRUD
     {
         private IMongoDatabase db;
